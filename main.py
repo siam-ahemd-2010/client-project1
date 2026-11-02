@@ -146,9 +146,9 @@ def api_toggle_comment():
 def generate_ai_reply(messages, api_key):
     from groq import Groq
     if not api_key:
-        return "দুঃখিত, কোনো Groq API Key সেট করা হয়নি।"
+        return "দুঃখিত, কোনো Groq API Key সেট করা হয়নি।"
 
-    available_models = ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.8-27b"]
+    available_models = ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.8-27b", "llama-3.3-70b-versatile"]
     for model_name in available_models:
         try:
             client = Groq(api_key=api_key)
@@ -236,7 +236,7 @@ def process_comment_async(comment_id, user_comment, config):
         public_reply = generate_ai_reply(messages, config["groq_api_key"])
 
         reply_to_comment(comment_id, public_reply, config["comment_access_token"])
-        send_private_dm(comment_id, "হ্যালো! আপনার কমেন্টের জন্য ধন্যবাদ 😊 ইনবক্সে বিস্তারিত দেওয়া হলো।", config["page_access_token"])
+        send_private_dm(comment_id, "হ্যালো! আপনার কমেন্টের জন্য ধন্যবাদ 😊 ইনবক্সে বিস্তারিত দেওয়া হলো।", config["page_access_token"])
     except Exception as e:
         print(f"Comment Async Error: {e}")
 
