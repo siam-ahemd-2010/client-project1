@@ -142,26 +142,44 @@ def api_toggle_comment():
     conn.close()
     return jsonify({"success": True})
 
-# --- AI Reply Generation using Dynamic Groq API Key ---
+# --- AI Reply Generation using Direct HTTP Request (Bypassing Library Conflict) ---
 def generate_ai_reply(messages, api_key):
-    from groq import Groq
     if not api_key:
         return "দুঃখিত, কোনো Groq API Key সেট করা হয়নি।"
 
-    available_models = ["openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.8-27b", "llama-3.3-70b-versatile"]
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    
+    available_models = [
+        "llama-3.3-70b-versatile",
+        "openai/gpt-oss-120b", 
+        "openai/gpt-oss-20b", 
+        "qwen/qwen3.8-27b",
+        "llama3-8b-8192"
+    ]
+
     for model_name in available_models:
         try:
-            client = Groq(api_key=api_key)
-            completion = client.chat.completions.create(
-                model=model_name,
-                messages=messages,
-                temperature=0.6,
-                max_tokens=500,
-            )
-            return completion.choices[0].message.content
+            payload = {
+                "model": model_name,
+                "messages": messages,
+                "temperature": 0.6,
+                "max_tokens": 500
+            }
+            response = requests.post(url, json=payload, headers=headers, timeout=15)
+            res_data = response.json()
+            
+            if "choices" in res_data and len(res_data["choices"]) > 0:
+                return res_data["choices"][0]["message"]["content"]
+            else:
+                print(f"Model {model_name} Error Response: {res_data}")
         except Exception as e:
             print(f"Model {model_name} Failed: {e}")
             continue
+            
     return "দুঃখিত, এই মুহূর্তে এআই রেসপন্স পেতে সমস্যা হচ্ছে।"
 
 def get_user_history(sender_id, custom_prompt):
